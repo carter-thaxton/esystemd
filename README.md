@@ -1,5 +1,7 @@
 # esystemd: Keep the Interface, Skip the Empire
 
+Nov 19, 2026 · @Carter
+
 ## The pitch
 
 systemd won the interface war and lost the Unix-philosophy argument. esystemd keeps the first and fixes the second. It's a small, auditable, from-scratch implementation of the systemd *interface* that boots stock Debian, packages and all, with nothing for package maintainers to do.
@@ -18,6 +20,23 @@ It's a lot more than INI files. Hyrum's law applies: the real interface is every
 - **Filesystem tells:** if `/run/systemd/system/` exists, you were "booted with systemd". Many programs branch on that.
 
 Writing down the unwritten parts is a deliverable in its own right, whether or not anyone ever runs esystemd.
+
+## Untangling the sprawl
+
+Most of systemd falls into four buckets. The sprawl comes from mixing them, not from any one bucket.
+
+| Bucket | What it is | Examples | In esystemd |
+| --- | --- | --- | --- |
+| Interface | What clients observe and depend on | Unit file semantics, `systemd1` D-Bus and Varlink APIs, cgroup names, `sd_notify`, socket activation | Implemented faithfully, specified and tested |
+| Orchestration | The manager's real job | Unit loading, transactions, state tracking, cgroup ownership, sequencing | The manager, and nothing else |
+| Compilers and appliers | Text in, kernel mechanism out | `DeviceAllow` (eBPF), `IPAddressAllow`, `SystemCallFilter` (seccomp), sandboxing, tmpfiles, sysusers | Small standalone tools the manager calls |
+| Separate services | Daemons in their own right | journald, logind, networkd, resolved, homed | Kept separate, coupled only through interfaces |
+
+In systemd, the last two buckets are entangled with the first two. Compilers run inside the most privileged process, and services couple through a private shared library and lockstep versioning.
+
+Instead, esystemd simply passes the text along. For example, the manager hands `DeviceAllow=` lines to a standalone tool that compiles and attaches the eBPF filter, then starts the service.
+
+Mapping the various directives and components of systemd to the above categories, and exposing its subtle and important interfaces is an explicit deliverable of this project.
 
 ## Design: small enough to actually audit
 
