@@ -4,7 +4,7 @@ systemd was a major boon to Linux. It brought order to chaos.
 
 It also brought a holy war.
 
-systemd won the interface war and lost the Unix-philosophy argument. This project keeps the first and offers a solution for the second.
+systemd offered a unified way to boot and administer a Linux system, but it lost the Unix-philosophy argument of "do one thing well".
 
 ## What systemd got right
 
